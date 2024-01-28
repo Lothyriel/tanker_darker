@@ -32,12 +32,8 @@ impl Plugin for ServerPlugin {
             .add_client_event::<MoveDirection>(EventType::Ordered)
             .add_systems(Startup, Self::init_system.map(Result::unwrap))
             .add_systems(
-            .add_systems(
-                Update,
-                (
-                    Self::movement_system,
-                    Self::server_event_system,
-                ),
+                FixedUpdate,
+                (Self::movement_system, Self::server_event_system),
             );
     }
 }
