@@ -4,7 +4,7 @@ use std::{
     time::SystemTime,
 };
 
-use bevy::prelude::*;
+use bevy::{log::LogPlugin, prelude::*};
 
 use bevy_replicon::{
     prelude::*,
@@ -18,7 +18,8 @@ use tanker_common::*;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, ReplicationPlugins, ServerPlugin))
+        .add_plugins((MinimalPlugins, ReplicationPlugins, ServerPlugin))
+        .add_plugins(LogPlugin::default())
         .run();
 }
 
