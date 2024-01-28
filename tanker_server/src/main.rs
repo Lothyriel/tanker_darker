@@ -71,7 +71,11 @@ impl ServerPlugin {
     }
 
     /// Logs server events and spawns a new player whenever a client connects.
-    fn server_event_system(mut commands: Commands, mut server_event: EventReader<ServerEvent>) {
+    fn server_event_system(
+        mut commands: Commands,
+        mut server_event: EventReader<ServerEvent>,
+        mut query: Query<(Entity, &Player)>,
+    ) {
         for event in server_event.read() {
             match event {
                 ServerEvent::ClientConnected { client_id } => {
@@ -88,6 +92,11 @@ impl ServerPlugin {
                 }
                 ServerEvent::ClientDisconnected { client_id, reason } => {
                     info!("client {client_id} disconnected: {reason}");
+                    for (entity, player) in &mut query {
+                        if *client_id == player.0 {
+                            commands.entity(entity).despawn()
+                        }
+                    }
                 }
             }
         }
