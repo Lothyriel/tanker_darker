@@ -30,16 +30,13 @@ impl Plugin for ServerPlugin {
         app.replicate::<PlayerPosition>()
             .replicate::<PlayerColor>()
             .add_client_event::<MoveDirection>(EventType::Ordered)
+            .add_systems(Startup, Self::init_system.map(Result::unwrap))
             .add_systems(
-                Startup,
-                (Self::cli_system.map(Result::unwrap), Self::init_system),
-            )
             .add_systems(
                 Update,
                 (
                     Self::movement_system,
                     Self::server_event_system,
-                    (Self::draw_boxes_system, Self::input_system),
                 ),
             );
     }
@@ -74,22 +71,7 @@ impl ServerPlugin {
         commands.insert_resource(server);
         commands.insert_resource(transport);
 
-        commands.spawn(TextBundle::from_section(
-            "Server",
-            TextStyle {
-                font_size: 30.0,
-                color: Color::WHITE,
-                ..default()
-            },
-        ));
-
-        commands.spawn(PlayerBundle::new(SERVER_ID, Vec2::ZERO, Color::GREEN));
-
         Ok(())
-    }
-
-    fn init_system(mut commands: Commands) {
-        commands.spawn(Camera2dBundle::default());
     }
 
     /// Logs server events and spawns a new player whenever a client connects.
@@ -112,37 +94,6 @@ impl ServerPlugin {
                     info!("client {client_id} disconnected: {reason}");
                 }
             }
-        }
-    }
-
-    fn draw_boxes_system(mut gizmos: Gizmos, players: Query<(&PlayerPosition, &PlayerColor)>) {
-        for (position, color) in &players {
-            gizmos.rect(
-                Vec3::new(position.x, position.y, 0.0),
-                Quat::IDENTITY,
-                Vec2::ONE * 50.0,
-                color.0,
-            );
-        }
-    }
-
-    /// Reads player inputs and sends [`MoveCommandEvents`]
-    fn input_system(mut move_events: EventWriter<MoveDirection>, input: Res<Input<KeyCode>>) {
-        let mut direction = Vec2::ZERO;
-        if input.pressed(KeyCode::Right) {
-            direction.x += 1.0;
-        }
-        if input.pressed(KeyCode::Left) {
-            direction.x -= 1.0;
-        }
-        if input.pressed(KeyCode::Up) {
-            direction.y += 1.0;
-        }
-        if input.pressed(KeyCode::Down) {
-            direction.y -= 1.0;
-        }
-        if direction != Vec2::ZERO {
-            move_events.send(MoveDirection(direction.normalize_or_zero()));
         }
     }
 
