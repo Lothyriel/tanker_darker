@@ -24,7 +24,7 @@ fn main() {
 struct ClientPlugin;
 
 impl ClientPlugin {
-    fn cli_system(
+    fn init_system(
         mut commands: Commands,
         network_channels: Res<NetworkChannels>,
     ) -> Result<(), Box<dyn Error>> {
@@ -63,11 +63,9 @@ impl ClientPlugin {
             },
         ));
 
-        Ok(())
-    }
-
-    fn init_system(mut commands: Commands) {
         commands.spawn(Camera2dBundle::default());
+
+        Ok(())
     }
 
     fn draw_boxes_system(mut gizmos: Gizmos, players: Query<(&PlayerPosition, &PlayerColor)>) {
@@ -107,10 +105,7 @@ impl Plugin for ClientPlugin {
         app.replicate::<PlayerPosition>()
             .replicate::<PlayerColor>()
             .add_client_event::<MoveDirection>(EventType::Ordered)
-            .add_systems(
-                Startup,
-                (Self::cli_system.map(Result::unwrap), Self::init_system),
-            )
-            .add_systems(Update, ((Self::draw_boxes_system, Self::input_system),));
+            .add_systems(Startup, Self::init_system.map(Result::unwrap))
+            .add_systems(Update, (Self::draw_boxes_system, Self::input_system));
     }
 }
