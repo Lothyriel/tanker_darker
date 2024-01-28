@@ -84,6 +84,7 @@ impl ServerPlugin {
                     let r = ((client_id.raw() % 23) as f32) / 23.0;
                     let g = ((client_id.raw() % 27) as f32) / 27.0;
                     let b = ((client_id.raw() % 39) as f32) / 39.0;
+
                     commands.spawn(PlayerBundle::new(
                         *client_id,
                         Vec2::ZERO,
@@ -92,6 +93,7 @@ impl ServerPlugin {
                 }
                 ServerEvent::ClientDisconnected { client_id, reason } => {
                     info!("client {client_id} disconnected: {reason}");
+
                     for (entity, player) in &mut query {
                         if *client_id == player.0 {
                             commands.entity(entity).despawn()
@@ -112,8 +114,10 @@ impl ServerPlugin {
         mut players: Query<(&Player, &mut PlayerPosition)>,
     ) {
         const MOVE_SPEED: f32 = 300.0;
+
         for FromClient { client_id, event } in move_events.read() {
             info!("received event {event:?} from client {client_id}");
+
             for (player, mut position) in &mut players {
                 if *client_id == player.0 {
                     **position += event.0 * time.delta_seconds() * MOVE_SPEED;
