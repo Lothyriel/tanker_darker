@@ -39,7 +39,7 @@ impl Plugin for ServerPlugin {
 }
 
 impl ServerPlugin {
-    fn cli_system(
+    fn init_system(
         mut commands: Commands,
         network_channels: Res<NetworkChannels>,
     ) -> Result<(), Box<dyn Error>> {
