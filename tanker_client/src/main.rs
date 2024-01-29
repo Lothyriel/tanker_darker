@@ -15,6 +15,9 @@ use bevy_replicon::{
 
 use tanker_common::{infra::env, *};
 
+mod graphics;
+mod input;
+
 fn main() {
     env::init();
 
@@ -25,8 +28,19 @@ fn main() {
 
 struct ClientPlugin;
 
+impl Plugin for ClientPlugin {
+    fn build(&self, app: &mut App) {
+        app.replicate::<PlayerPosition>()
+            .replicate::<PlayerColor>()
+            .add_client_event::<MoveDirection>(EventType::Ordered)
+            .add_plugins(graphics::GraphicsPlugin)
+            .add_plugins(input::InputPlugin)
+            .add_systems(PreStartup, Self::connect_server_system.map(Result::unwrap));
+    }
+}
+
 impl ClientPlugin {
-    fn init_system(
+    fn connect_server_system(
         mut commands: Commands,
         network_channels: Res<NetworkChannels>,
     ) -> anyhow::Result<()> {
@@ -47,8 +61,6 @@ impl ClientPlugin {
 
         let server_addr = SocketAddr::new(server_ip, PORT);
 
-        let socket = UdpSocket::bind((server_ip, 0))?;
-
         let authentication = ClientAuthentication::Unsecure {
             client_id,
             protocol_id: PROTOCOL_ID,
@@ -56,63 +68,13 @@ impl ClientPlugin {
             user_data: None,
         };
 
+        let socket = UdpSocket::bind((server_ip, 0))?;
+
         let transport = NetcodeClientTransport::new(current_time, authentication, socket)?;
 
         commands.insert_resource(client);
         commands.insert_resource(transport);
 
-        commands.spawn(TextBundle::from_section(
-            format!("Client: {client_id:?}"),
-            TextStyle {
-                font_size: 30.0,
-                color: Color::WHITE,
-                ..default()
-            },
-        ));
-
-        commands.spawn(Camera2dBundle::default());
-
         Ok(())
-    }
-
-    fn draw_boxes_system(mut gizmos: Gizmos, players: Query<(&PlayerPosition, &PlayerColor)>) {
-        for (position, color) in &players {
-            gizmos.rect(
-                Vec3::new(position.x, position.y, 0.0),
-                Quat::IDENTITY,
-                Vec2::ONE * 50.0,
-                color.0,
-            );
-        }
-    }
-
-    /// Reads player inputs and sends [`MoveCommandEvents`]
-    fn input_system(mut move_events: EventWriter<MoveDirection>, input: Res<Input<KeyCode>>) {
-        let mut direction = Vec2::ZERO;
-        if input.pressed(KeyCode::Right) {
-            direction.x += 1.0;
-        }
-        if input.pressed(KeyCode::Left) {
-            direction.x -= 1.0;
-        }
-        if input.pressed(KeyCode::Up) {
-            direction.y += 1.0;
-        }
-        if input.pressed(KeyCode::Down) {
-            direction.y -= 1.0;
-        }
-        if direction != Vec2::ZERO {
-            move_events.send(MoveDirection(direction.normalize_or_zero()));
-        }
-    }
-}
-
-impl Plugin for ClientPlugin {
-    fn build(&self, app: &mut App) {
-        app.replicate::<PlayerPosition>()
-            .replicate::<PlayerColor>()
-            .add_client_event::<MoveDirection>(EventType::Ordered)
-            .add_systems(Startup, Self::init_system.map(Result::unwrap))
-            .add_systems(Update, (Self::draw_boxes_system, Self::input_system));
     }
 }
