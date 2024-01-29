@@ -52,7 +52,7 @@ impl ServerPlugin {
 
         let current_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
 
-        let public_addr = SocketAddr::new(Ipv4Addr::LOCALHOST.into(), PORT);
+        let public_addr = SocketAddr::new(Ipv4Addr::UNSPECIFIED.into(), PORT);
 
         let socket = UdpSocket::bind(public_addr)?;
 
