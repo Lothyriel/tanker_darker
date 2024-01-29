@@ -67,9 +67,9 @@ impl GraphicsPlugin {
         mut commands: Commands,
         mut meshes: ResMut<Assets<Mesh>>,
         mut materials: ResMut<Assets<StandardMaterial>>,
-        spawned_players: Query<(Entity, &PlayerColor), Added<PlayerColor>>,
+        query: Query<(Entity, &PlayerColor), Added<PlayerColor>>,
     ) {
-        for (entity, color) in &spawned_players {
+        for (entity, color) in &query {
             commands.entity(entity).insert(PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
                 material: materials.add(color.0.into()),

@@ -54,14 +54,14 @@ impl TickPlugin {
     fn movement_system(
         time: Res<Time>,
         mut move_events: EventReader<FromClient<MoveDirection>>,
-        mut players: Query<(&Player, &mut PlayerPosition)>,
+        mut query: Query<(&Player, &mut PlayerPosition)>,
     ) {
         const MOVE_SPEED: f32 = 3.0;
 
         for FromClient { client_id, event } in move_events.read() {
             info!("received event {event:?} from client {client_id}");
 
-            for (player, mut position) in &mut players {
+            for (player, mut position) in &mut query {
                 if *client_id == player.0 {
                     **position += event.0 * time.delta_seconds() * MOVE_SPEED;
                 }
