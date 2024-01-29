@@ -1,7 +1,8 @@
-use bevy::prelude::{Bundle, Color, Component, Deref, DerefMut, Event, Vec2};
+use bevy::prelude::{Bundle, Color, Component, Deref, DerefMut, Vec3};
 use bevy_replicon::{prelude::Replication, renet::ClientId};
 use serde::{Deserialize, Serialize};
 
+pub mod events;
 pub mod infra;
 
 pub const PORT: u16 = 6969;
@@ -16,7 +17,7 @@ pub struct PlayerBundle {
 }
 
 impl PlayerBundle {
-    pub fn new(client_id: ClientId, position: Vec2, color: Color) -> Self {
+    pub fn new(client_id: ClientId, position: Vec3, color: Color) -> Self {
         Self {
             player: Player(client_id),
             position: PlayerPosition(position),
@@ -31,11 +32,7 @@ impl PlayerBundle {
 pub struct Player(pub ClientId);
 
 #[derive(Component, Deserialize, Serialize, Deref, DerefMut)]
-pub struct PlayerPosition(pub Vec2);
+pub struct PlayerPosition(pub Vec3);
 
 #[derive(Component, Deserialize, Serialize)]
 pub struct PlayerColor(pub Color);
-
-/// A movement event for the controlled box.
-#[derive(Debug, Default, Deserialize, Event, Serialize)]
-pub struct MoveDirection(pub Vec2);

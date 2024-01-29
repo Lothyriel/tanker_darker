@@ -13,7 +13,7 @@ use bevy_replicon::{
     },
 };
 
-use tanker_common::{infra::env, *};
+use tanker_common::{events::MoveDirection, infra::env, *};
 
 mod graphics;
 mod input;

@@ -13,7 +13,7 @@ use bevy_replicon::{
     },
 };
 
-use tanker_common::*;
+use tanker_common::{events::MoveDirection, *};
 
 mod tick;
 
