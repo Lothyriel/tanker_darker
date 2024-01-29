@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use tanker_common::MoveDirection;
+use tanker_common::events::MoveDirection;
 
 pub struct InputPlugin;
 
@@ -12,7 +12,7 @@ impl Plugin for InputPlugin {
 impl InputPlugin {
     /// Reads player inputs and sends [`MoveCommandEvents`]
     fn input_system(mut move_events: EventWriter<MoveDirection>, input: Res<Input<KeyCode>>) {
-        let mut direction = Vec2::ZERO;
+        let mut direction = Vec3::ZERO;
 
         let pressed = |k| if input.pressed(k) { 1.0 } else { 0.0 };
 
@@ -21,7 +21,7 @@ impl InputPlugin {
         direction.y += pressed(KeyCode::Up);
         direction.y -= pressed(KeyCode::Down);
 
-        if direction != Vec2::ZERO {
+        if direction != Vec3::ZERO {
             move_events.send(MoveDirection(direction.normalize_or_zero()));
         }
     }

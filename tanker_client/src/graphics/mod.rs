@@ -7,7 +7,9 @@ pub struct GraphicsPlugin;
 impl Plugin for GraphicsPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Startup, Self::init_ui_system)
-            .add_systems(Update, Self::draw_boxes_system);
+            .add_systems(Startup, Self::init_scenery_system)
+            .add_systems(Update, Self::update_players_system)
+            .add_systems(Update, Self::spawn_players_system);
     }
 }
 
@@ -22,17 +24,58 @@ impl GraphicsPlugin {
             },
         ));
 
-        commands.spawn(Camera2dBundle::default());
+        // camera
+        commands.spawn(Camera3dBundle {
+            transform: Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::ZERO, Vec3::Y),
+            ..default()
+        });
     }
 
-    fn draw_boxes_system(mut gizmos: Gizmos, players: Query<(&PlayerPosition, &PlayerColor)>) {
-        for (position, color) in &players {
-            gizmos.rect(
-                Vec3::new(position.x, position.y, 0.0),
-                Quat::IDENTITY,
-                Vec2::ONE * 50.0,
-                color.0,
-            );
+    fn init_scenery_system(
+        mut commands: Commands,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+    ) {
+        // circular base
+        commands.spawn(PbrBundle {
+            mesh: meshes.add(shape::Circle::new(4.0).into()),
+            material: materials.add(Color::WHITE.into()),
+            transform: Transform::from_rotation(Quat::from_rotation_x(
+                -std::f32::consts::FRAC_PI_2,
+            )),
+            ..default()
+        });
+        // light
+        commands.spawn(PointLightBundle {
+            point_light: PointLight {
+                intensity: 1500.0,
+                shadows_enabled: true,
+                ..default()
+            },
+            transform: Transform::from_xyz(4.0, 8.0, 4.0),
+            ..default()
+        });
+    }
+
+    fn update_players_system(mut query: Query<(&mut Transform, &PlayerPosition)>) {
+        for (mut transform, position) in &mut query {
+            *transform = Transform::from_translation(position.0)
+        }
+    }
+
+    fn spawn_players_system(
+        mut commands: Commands,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+        spawned_players: Query<(Entity, &PlayerColor), Added<PlayerColor>>,
+    ) {
+        for (entity, color) in &spawned_players {
+            commands.entity(entity).insert(PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+                material: materials.add(color.0.into()),
+                transform: Transform::from_translation(Vec3::ZERO),
+                ..default()
+            });
         }
     }
 }

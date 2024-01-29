@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use bevy_replicon::{prelude::*, renet::ServerEvent};
-use tanker_common::{MoveDirection, Player, PlayerBundle, PlayerPosition};
+use tanker_common::{events::MoveDirection, Player, PlayerBundle, PlayerPosition};
 
 pub struct TickPlugin;
 
@@ -30,11 +30,9 @@ impl TickPlugin {
                     let g = ((client_id.raw() % 27) as f32) / 27.0;
                     let b = ((client_id.raw() % 39) as f32) / 39.0;
 
-                    commands.spawn(PlayerBundle::new(
-                        *client_id,
-                        Vec2::ZERO,
-                        Color::rgb(r, g, b),
-                    ));
+                    let color = Color::rgb(r, g, b);
+
+                    commands.spawn(PlayerBundle::new(*client_id, Vec3::ZERO, color));
                 }
                 ServerEvent::ClientDisconnected { client_id, reason } => {
                     info!("client {client_id} disconnected: {reason}");
@@ -58,7 +56,7 @@ impl TickPlugin {
         mut move_events: EventReader<FromClient<MoveDirection>>,
         mut players: Query<(&Player, &mut PlayerPosition)>,
     ) {
-        const MOVE_SPEED: f32 = 300.0;
+        const MOVE_SPEED: f32 = 3.0;
 
         for FromClient { client_id, event } in move_events.read() {
             info!("received event {event:?} from client {client_id}");
