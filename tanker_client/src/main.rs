@@ -61,6 +61,8 @@ impl ClientPlugin {
 
         let server_addr = SocketAddr::new(server_ip, PORT);
 
+        info!("Connecting on {}", server_addr);
+
         let authentication = ClientAuthentication::Unsecure {
             client_id,
             protocol_id: PROTOCOL_ID,
