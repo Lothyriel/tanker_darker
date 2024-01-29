@@ -1,5 +1,4 @@
 use std::{
-    error::Error,
     net::{Ipv4Addr, SocketAddr, UdpSocket},
     time::SystemTime,
 };
@@ -42,7 +41,7 @@ impl ServerPlugin {
     fn init_system(
         mut commands: Commands,
         network_channels: Res<NetworkChannels>,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> anyhow::Result<()> {
         let server_channels_config = network_channels.get_server_configs();
         let client_channels_config = network_channels.get_client_configs();
 
@@ -53,8 +52,11 @@ impl ServerPlugin {
         });
 
         let current_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
+
         let public_addr = SocketAddr::new(Ipv4Addr::LOCALHOST.into(), PORT);
+
         let socket = UdpSocket::bind(public_addr)?;
+
         let server_config = ServerConfig {
             current_time,
             max_clients: 10,
@@ -62,6 +64,7 @@ impl ServerPlugin {
             authentication: ServerAuthentication::Unsecure,
             public_addresses: vec![public_addr],
         };
+
         let transport = NetcodeServerTransport::new(server_config, socket)?;
 
         commands.insert_resource(server);

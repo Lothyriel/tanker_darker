@@ -2,6 +2,8 @@ use bevy::prelude::{Bundle, Color, Component, Deref, DerefMut, Event, Vec2};
 use bevy_replicon::{prelude::Replication, renet::ClientId};
 use serde::{Deserialize, Serialize};
 
+pub mod infra;
+
 pub const PORT: u16 = 6969;
 pub const PROTOCOL_ID: u64 = 0;
 

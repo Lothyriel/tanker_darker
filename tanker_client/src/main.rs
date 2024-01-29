@@ -1,6 +1,5 @@
 use std::{
-    error::Error,
-    net::{Ipv4Addr, SocketAddr, UdpSocket},
+    net::{SocketAddr, UdpSocket},
     time::SystemTime,
 };
 
@@ -13,9 +12,12 @@ use bevy_replicon::{
         ConnectionConfig,
     },
 };
-use tanker_common::*;
+
+use tanker_common::{infra::env, *};
 
 fn main() {
+    env::init();
+
     App::new()
         .add_plugins((DefaultPlugins, ReplicationPlugins, ClientPlugin))
         .run();
@@ -27,7 +29,7 @@ impl ClientPlugin {
     fn init_system(
         mut commands: Commands,
         network_channels: Res<NetworkChannels>,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> anyhow::Result<()> {
         let server_channels_config = network_channels.get_server_configs();
         let client_channels_config = network_channels.get_client_configs();
 
@@ -38,17 +40,22 @@ impl ClientPlugin {
         });
 
         let current_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
+
         let client_id = current_time.as_millis() as u64;
 
-        let server_ip = Ipv4Addr::LOCALHOST.into();
+        let server_ip = env::get("SERVER_ADDR")?.parse()?;
+
         let server_addr = SocketAddr::new(server_ip, PORT);
+
         let socket = UdpSocket::bind((server_ip, 0))?;
+
         let authentication = ClientAuthentication::Unsecure {
             client_id,
             protocol_id: PROTOCOL_ID,
             server_addr,
             user_data: None,
         };
+
         let transport = NetcodeClientTransport::new(current_time, authentication, socket)?;
 
         commands.insert_resource(client);
