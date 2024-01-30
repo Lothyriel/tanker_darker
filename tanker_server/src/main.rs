@@ -19,8 +19,10 @@ mod tick;
 
 fn main() {
     App::new()
-        .add_plugins((MinimalPlugins, ReplicationPlugins, ServerPlugin))
+        .add_plugins(MinimalPlugins)
+        .add_plugins(ReplicationPlugins.build().disable::<ClientPlugin>())
         .add_plugins(LogPlugin::default())
+        .add_plugins(ServerPlugin)
         .run();
 }
 

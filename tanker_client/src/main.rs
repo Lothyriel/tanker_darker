@@ -22,7 +22,9 @@ fn main() {
     env::init();
 
     App::new()
-        .add_plugins((DefaultPlugins, ReplicationPlugins, ClientPlugin))
+        .add_plugins(DefaultPlugins)
+        .add_plugins(ReplicationPlugins.build().disable::<ServerPlugin>())
+        .add_plugins(ClientPlugin)
         .run();
 }
 
