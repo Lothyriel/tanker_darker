@@ -1,5 +1,5 @@
 use std::{
-    net::{Ipv6Addr, SocketAddr, UdpSocket},
+    net::{Ipv4Addr, SocketAddr, UdpSocket},
     time::SystemTime,
 };
 
@@ -54,9 +54,7 @@ impl ServerPlugin {
 
         let current_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
 
-        let public_addr = SocketAddr::new(Ipv6Addr::UNSPECIFIED.into(), PORT);
-
-        let socket = UdpSocket::bind(public_addr)?;
+        let public_addr = SocketAddr::new(Ipv4Addr::UNSPECIFIED.into(), PORT);
 
         let server_config = ServerConfig {
             current_time,
@@ -65,6 +63,8 @@ impl ServerPlugin {
             authentication: ServerAuthentication::Unsecure,
             public_addresses: vec![public_addr],
         };
+
+        let socket = UdpSocket::bind(public_addr)?;
 
         let transport = NetcodeServerTransport::new(server_config, socket)?;
 
