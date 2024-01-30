@@ -1,5 +1,5 @@
 use std::{
-    net::{SocketAddr, UdpSocket},
+    net::{Ipv4Addr, SocketAddr, UdpSocket},
     time::SystemTime,
 };
 
@@ -72,7 +72,7 @@ impl ClientPlugin {
             user_data: None,
         };
 
-        let socket = UdpSocket::bind((server_ip, 0))?;
+        let socket = UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0))?;
 
         let transport = NetcodeClientTransport::new(current_time, authentication, socket)?;
 
