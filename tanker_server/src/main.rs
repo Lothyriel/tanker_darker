@@ -1,5 +1,5 @@
 use std::{
-    net::{Ipv4Addr, SocketAddr, UdpSocket},
+    net::{Ipv6Addr, SocketAddr, UdpSocket},
     time::SystemTime,
 };
 
@@ -54,7 +54,7 @@ impl ServerPlugin {
 
         let current_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
 
-        let public_addr = SocketAddr::new(Ipv4Addr::UNSPECIFIED.into(), PORT);
+        let public_addr = SocketAddr::new(Ipv6Addr::UNSPECIFIED.into(), PORT);
 
         let socket = UdpSocket::bind(public_addr)?;
 
