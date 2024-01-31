@@ -1,11 +1,8 @@
 use std::time::Duration;
 
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
 
-use bevy_replicon::{
-    prelude::*,
-    renet::{ClientId, ServerEvent},
-};
+use bevy_replicon::{prelude::*, renet::ServerEvent};
 use tanker_common::{
     events::{MoveDirection, SpawnBomb},
     BombBundle, Player, PlayerBundle, PlayerColor, PlayerPosition,
@@ -15,25 +12,20 @@ pub struct TickPlugin;
 
 impl Plugin for TickPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, Self::init_bomb_control_system)
-            .add_systems(FixedUpdate, Self::tick_bomb_timers_system)
+        app.add_systems(FixedUpdate, Self::tick_bomb_control_timers_system)
             .add_systems(FixedUpdate, Self::movement_system)
             .add_systems(FixedUpdate, Self::server_event_system)
             .add_systems(FixedUpdate, Self::spawn_bombs_system);
     }
 }
 
-#[derive(Resource)]
-struct BombControl(HashMap<ClientId, Timer>);
+#[derive(Component)]
+struct BombControl(Timer);
 
 impl TickPlugin {
-    fn init_bomb_control_system(mut commands: Commands) {
-        commands.insert_resource(BombControl(HashMap::new()))
-    }
-
-    fn tick_bomb_timers_system(mut control: ResMut<BombControl>, time: Res<Time>) {
-        for (_, timer) in control.0.iter_mut() {
-            timer.tick(time.delta());
+    fn tick_bomb_control_timers_system(mut query: Query<&mut BombControl>, time: Res<Time>) {
+        for mut timer in &mut query {
+            timer.0.tick(time.delta());
         }
     }
 
@@ -41,8 +33,7 @@ impl TickPlugin {
     fn server_event_system(
         mut commands: Commands,
         mut server_event: EventReader<ServerEvent>,
-        mut control: ResMut<BombControl>,
-        mut query: Query<(Entity, &Player)>,
+        query: Query<(Entity, &Player)>,
     ) {
         for event in server_event.read() {
             match event {
@@ -55,20 +46,18 @@ impl TickPlugin {
 
                     let color = Color::rgb(r, g, b);
 
-                    control.0.insert(
-                        *client_id,
-                        Timer::new(Duration::from_secs(0), TimerMode::Once),
-                    );
+                    let player = PlayerBundle::new(*client_id, Vec3::new(0., 0.5, 0.), color);
 
-                    commands.spawn(PlayerBundle::new(*client_id, Vec3::new(0., 0.5, 0.), color));
+                    let bomb_timer = Timer::new(Duration::from_secs(0), TimerMode::Once);
+
+                    commands.spawn((player, BombControl(bomb_timer)));
                 }
                 ServerEvent::ClientDisconnected { client_id, reason } => {
                     info!("Player {client_id} disconnected: {reason}");
 
-                    for (entity, player) in &mut query {
+                    for (entity, player) in &query {
                         if *client_id == player.0 {
                             commands.entity(entity).despawn();
-                            control.0.remove(client_id);
                         }
                     }
                 }
@@ -99,27 +88,26 @@ impl TickPlugin {
     fn spawn_bombs_system(
         mut commands: Commands,
         mut events: EventReader<FromClient<SpawnBomb>>,
-        mut control: ResMut<BombControl>,
-        query: Query<(&Player, &PlayerPosition, &PlayerColor)>,
+        mut query: Query<(&Player, &PlayerPosition, &PlayerColor, &mut BombControl)>,
     ) {
         for FromClient {
             client_id,
             event: _,
         } in events.read()
         {
-            let (player, position, color) = query
-                .into_iter()
-                .find(|(p, _, _)| p.0 == *client_id)
+            let (player, position, color, mut control) = query
+                .iter_mut()
+                .find(|(p, _, _, _)| p.0 == *client_id)
                 .unwrap();
 
-            let timer = control.0.get_mut(&player.0).unwrap();
-
-            if !timer.finished() {
+            if !control.0.finished() {
                 return;
             }
 
-            timer.set_duration(Duration::from_secs(3));
-            timer.reset();
+            const BOMB_DELAY: u64 = 3;
+
+            control.0.set_duration(Duration::from_secs(BOMB_DELAY));
+            control.0.reset();
 
             commands.spawn(BombBundle::new(position.0, color.0));
             info!("Player: {} Spawned bomb at {}", player.0, position.0);
