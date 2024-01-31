@@ -5,7 +5,7 @@ use bevy::prelude::*;
 use bevy_replicon::{prelude::*, renet::ServerEvent};
 use tanker_common::{
     events::{MoveDirection, SpawnBomb},
-    BombBundle, Player, PlayerBundle, PlayerColor, PlayerPosition,
+    *,
 };
 
 pub struct TickPlugin;
@@ -18,9 +18,6 @@ impl Plugin for TickPlugin {
             .add_systems(FixedUpdate, Self::spawn_bombs_system);
     }
 }
-
-#[derive(Component)]
-struct BombControl(Timer);
 
 impl TickPlugin {
     fn tick_bomb_control_timers_system(mut query: Query<&mut BombControl>, time: Res<Time>) {
@@ -48,9 +45,9 @@ impl TickPlugin {
 
                     let player = PlayerBundle::new(*client_id, Vec3::new(0., 0.5, 0.), color);
 
-                    let bomb_timer = Timer::new(Duration::from_secs(0), TimerMode::Once);
+                    let timer = Timer::new(Duration::from_secs(0), TimerMode::Once);
 
-                    commands.spawn((player, BombControl(bomb_timer)));
+                    commands.spawn((player, BombControl(timer)));
                 }
                 ServerEvent::ClientDisconnected { client_id, reason } => {
                     info!("Player {client_id} disconnected: {reason}");

@@ -1,4 +1,7 @@
-use bevy::prelude::{Bundle, Color, Component, Deref, DerefMut, Vec3};
+use bevy::{
+    prelude::{Bundle, Color, Component, Deref, DerefMut, Vec3},
+    time::Timer,
+};
 use bevy_replicon::{prelude::Replication, renet::ClientId};
 use serde::{Deserialize, Serialize};
 
@@ -35,6 +38,9 @@ pub struct PlayerPosition(pub Vec3);
 
 #[derive(Component, Deserialize, Serialize)]
 pub struct PlayerColor(pub Color);
+
+#[derive(Component)]
+pub struct BombControl(pub Timer);
 
 #[derive(Component, Deserialize, Serialize)]
 pub struct BombPosition(pub Vec3);
