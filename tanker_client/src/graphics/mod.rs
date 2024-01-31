@@ -1,6 +1,6 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::mesh::shape::UVSphere};
 use bevy_replicon::renet::transport::NetcodeClientTransport;
-use tanker_common::{PlayerColor, PlayerPosition};
+use tanker_common::{BombPosition, PlayerColor, PlayerPosition};
 
 pub struct GraphicsPlugin;
 
@@ -9,7 +9,8 @@ impl Plugin for GraphicsPlugin {
         app.add_systems(Startup, Self::init_ui_system)
             .add_systems(Startup, Self::init_scenery_system)
             .add_systems(Update, Self::update_players_system)
-            .add_systems(Update, Self::spawn_players_system);
+            .add_systems(Update, Self::spawn_players_system)
+            .add_systems(Update, Self::spawn_bombs_system);
     }
 }
 
@@ -73,6 +74,27 @@ impl GraphicsPlugin {
         for (entity, color, position) in &query {
             commands.entity(entity).insert(PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+                material: materials.add(color.0.into()),
+                transform: Transform::from_translation(position.0),
+                ..default()
+            });
+        }
+    }
+
+    fn spawn_bombs_system(
+        mut commands: Commands,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+        query: Query<(&PlayerColor, &BombPosition), Added<BombPosition>>,
+    ) {
+        for (color, position) in &query {
+            info!("spawnemos");
+            commands.spawn(PbrBundle {
+                mesh: meshes.add(Mesh::from(UVSphere {
+                    stacks: 64,
+                    sectors: 128,
+                    radius: 0.5,
+                })),
                 material: materials.add(color.0.into()),
                 transform: Transform::from_translation(position.0),
                 ..default()

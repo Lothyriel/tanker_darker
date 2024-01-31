@@ -1,18 +1,19 @@
 use bevy::{input::mouse::MouseWheel, prelude::*};
-use tanker_common::events::MoveDirection;
+use tanker_common::events::{MoveDirection, SpawnBomb};
 
 pub struct InputPlugin;
 
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Update, Self::input_system)
-            .add_systems(Update, Self::camera_zoom_system);
+        app.add_systems(Update, Self::movement_system)
+            .add_systems(Update, Self::camera_zoom_system)
+            .add_systems(Update, Self::bomb_system);
     }
 }
 
 impl InputPlugin {
     /// Reads player inputs and sends [`MoveCommandEvents`]
-    fn input_system(mut move_events: EventWriter<MoveDirection>, input: Res<Input<KeyCode>>) {
+    fn movement_system(mut move_events: EventWriter<MoveDirection>, input: Res<Input<KeyCode>>) {
         let mut direction = Vec3::ZERO;
 
         let pressed = |k| if input.pressed(k) { 1.0 } else { 0.0 };
@@ -24,6 +25,12 @@ impl InputPlugin {
 
         if direction != Vec3::ZERO {
             move_events.send(MoveDirection(direction.normalize_or_zero()));
+        }
+    }
+
+    fn bomb_system(mut move_events: EventWriter<SpawnBomb>, input: Res<Input<KeyCode>>) {
+        if input.pressed(KeyCode::Space) {
+            move_events.send(SpawnBomb);
         }
     }
 

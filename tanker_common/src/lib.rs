@@ -35,3 +35,23 @@ pub struct PlayerPosition(pub Vec3);
 
 #[derive(Component, Deserialize, Serialize)]
 pub struct PlayerColor(pub Color);
+
+#[derive(Component, Deserialize, Serialize)]
+pub struct BombPosition(pub Vec3);
+
+#[derive(Bundle)]
+pub struct BombBundle {
+    position: BombPosition,
+    color: PlayerColor,
+    replication: Replication,
+}
+
+impl BombBundle {
+    pub fn new(position: Vec3, color: Color) -> Self {
+        Self {
+            color: PlayerColor(color),
+            position: BombPosition(position),
+            replication: Replication,
+        }
+    }
+}

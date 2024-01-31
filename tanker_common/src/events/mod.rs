@@ -1,12 +1,20 @@
-use bevy::prelude::{Event, Vec3};
+use bevy::{
+    app::App,
+    prelude::{Event, Vec3},
+};
 use bevy_replicon::{
     network_event::{client_event::ClientEventAppExt, EventType},
     replicon_core::replication_rules::AppReplicationExt,
 };
 use serde::{Deserialize, Serialize};
 
+use crate::{BombPosition, PlayerColor, PlayerPosition};
+
 #[derive(Debug, Default, Deserialize, Event, Serialize)]
 pub struct MoveDirection(pub Vec3);
+
+#[derive(Debug, Default, Deserialize, Event, Serialize)]
+pub struct SpawnBomb;
 
 pub trait Register {
     fn register_events(&mut self) -> &mut Self;
