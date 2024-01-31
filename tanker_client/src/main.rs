@@ -19,8 +19,6 @@ mod graphics;
 mod input;
 
 fn main() {
-    env::init();
-
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(ReplicationPlugins.build().disable::<ServerPlugin>())
@@ -59,7 +57,7 @@ impl ClientPlugin {
 
         let client_id = current_time.as_millis() as u64;
 
-        let server_ip = env::get("SERVER_ADDR")?.parse()?;
+        let server_ip = dotenvy_macro::dotenv!("SERVER_ADDR").parse()?;
 
         let server_addr = SocketAddr::new(server_ip, PORT);
 
