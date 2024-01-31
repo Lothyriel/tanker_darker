@@ -88,7 +88,6 @@ impl GraphicsPlugin {
         query: Query<(&PlayerColor, &BombPosition), Added<BombPosition>>,
     ) {
         for (color, position) in &query {
-            info!("spawnemos");
             commands.spawn(PbrBundle {
                 mesh: meshes.add(Mesh::from(UVSphere {
                     stacks: 64,
