@@ -3,7 +3,6 @@ use bevy_replicon::{prelude::Replication, renet::ClientId};
 use serde::{Deserialize, Serialize};
 
 pub mod events;
-pub mod infra;
 
 pub const PORT: u16 = 42069;
 pub const PROTOCOL_ID: u64 = 0;
