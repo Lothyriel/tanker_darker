@@ -32,7 +32,7 @@ impl TickPlugin {
 
                     let color = Color::rgb(r, g, b);
 
-                    commands.spawn(PlayerBundle::new(*client_id, Vec3::ZERO, color));
+                    commands.spawn(PlayerBundle::new(*client_id, Vec3::new(0., 0.5, 0.), color));
                 }
                 ServerEvent::ClientDisconnected { client_id, reason } => {
                     info!("client {client_id} disconnected: {reason}");
