@@ -45,6 +45,7 @@ impl GraphicsPlugin {
             )),
             ..default()
         });
+
         // light
         commands.spawn(PointLightBundle {
             point_light: PointLight {
@@ -67,13 +68,13 @@ impl GraphicsPlugin {
         mut commands: Commands,
         mut meshes: ResMut<Assets<Mesh>>,
         mut materials: ResMut<Assets<StandardMaterial>>,
-        query: Query<(Entity, &PlayerColor), Added<PlayerColor>>,
+        query: Query<(Entity, &PlayerColor, &PlayerPosition), Added<PlayerColor>>,
     ) {
-        for (entity, color) in &query {
+        for (entity, color, position) in &query {
             commands.entity(entity).insert(PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
                 material: materials.add(color.0.into()),
-                transform: Transform::from_translation(Vec3::ZERO),
+                transform: Transform::from_translation(position.0),
                 ..default()
             });
         }
