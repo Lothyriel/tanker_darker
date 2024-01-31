@@ -13,7 +13,7 @@ use bevy_replicon::{
     },
 };
 
-use tanker_common::{events::MoveDirection, *};
+use tanker_common::{events::Register, *};
 
 mod tick;
 
@@ -30,9 +30,8 @@ struct ServerPlugin;
 
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
-        app.replicate::<PlayerPosition>()
-            .replicate::<PlayerColor>()
-            .add_client_event::<MoveDirection>(EventType::Ordered)
+        app.register_replications()
+            .register_events()
             .add_plugins(tick::TickPlugin)
             .add_systems(Startup, Self::init_system.map(Result::unwrap));
     }
