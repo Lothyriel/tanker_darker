@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{input::mouse::MouseWheel, prelude::*};
 use tanker_common::events::MoveDirection;
 
 pub struct InputPlugin;
@@ -18,8 +18,8 @@ impl InputPlugin {
 
         direction.x += pressed(KeyCode::Right);
         direction.x -= pressed(KeyCode::Left);
-        direction.y += pressed(KeyCode::Up);
-        direction.y -= pressed(KeyCode::Down);
+        direction.z -= pressed(KeyCode::Up);
+        direction.z += pressed(KeyCode::Down);
 
         if direction != Vec3::ZERO {
             move_events.send(MoveDirection(direction.normalize_or_zero()));
