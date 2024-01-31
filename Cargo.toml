@@ -10,3 +10,8 @@ opt-level = 1
 # Enable high optimizations for dependencies (incl. Bevy), but not for our code:
 [profile.dev.package."*"]
 opt-level = 3
+
+# NOTE: unccoment this when https://github.com/gfx-rs/wgpu/issues/4247 is fixed
+# so we can we use debug builds on the client without the DXGI errors
+#[profile.release]
+#lto = "thin"
