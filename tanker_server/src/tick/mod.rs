@@ -74,11 +74,9 @@ impl TickPlugin {
         const MOVE_SPEED: f32 = 3.0;
 
         for FromClient { client_id, event } in events.read() {
-            for (player, mut position) in &mut query {
-                if *client_id == player.0 {
-                    **position += event.0 * time.delta_seconds() * MOVE_SPEED;
-                }
-            }
+            let (_, mut position) = query.iter_mut().find(|(p, _)| p.0 == *client_id).unwrap();
+
+            **position += event.0 * time.delta_seconds() * MOVE_SPEED;
         }
     }
 
