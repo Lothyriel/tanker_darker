@@ -13,6 +13,8 @@ pub struct TickPlugin;
 impl Plugin for TickPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(FixedUpdate, Self::tick_bomb_control_timers_system)
+            .add_systems(FixedUpdate, Self::tick_bomb_fuse_timers_system)
+            .add_systems(FixedUpdate, Self::blow_bombs_system)
             .add_systems(FixedUpdate, Self::movement_system)
             .add_systems(FixedUpdate, Self::server_event_system)
             .add_systems(FixedUpdate, Self::spawn_bombs_system);
@@ -21,6 +23,12 @@ impl Plugin for TickPlugin {
 
 impl TickPlugin {
     fn tick_bomb_control_timers_system(mut query: Query<&mut BombControl>, time: Res<Time>) {
+        for mut timer in &mut query {
+            timer.0.tick(time.delta());
+        }
+    }
+
+    fn tick_bomb_fuse_timers_system(mut query: Query<&mut BombFuse>, time: Res<Time>) {
         for mut timer in &mut query {
             timer.0.tick(time.delta());
         }
@@ -62,7 +70,7 @@ impl TickPlugin {
         }
     }
 
-    /// Mutates [`PlayerPosition`] based on [`MoveCommandEvents`].
+    /// Mutates [`PlayerPosition`] based on [`MoveDirection`].
     ///
     /// Fast-paced games usually you don't want to wait until server send a position back because of the latency.
     /// But this example just demonstrates simple replication concept.
@@ -77,6 +85,16 @@ impl TickPlugin {
             let (_, mut position) = query.iter_mut().find(|(p, _)| p.0 == *client_id).unwrap();
 
             **position += event.0 * time.delta_seconds() * MOVE_SPEED;
+        }
+    }
+
+    fn blow_bombs_system(mut commands: Commands, query: Query<(Entity, &BombFuse, &BombPosition)>) {
+        const BOMB_RADIUS: f32 = 3.0;
+
+        for (entity, _, position) in query.iter().filter(|(_, f, _)| f.0.finished()) {
+            commands.entity(entity).despawn();
+
+            commands.spawn(BombExplosionBundle::new(position.0, BOMB_RADIUS));
         }
     }
 
@@ -99,12 +117,18 @@ impl TickPlugin {
                 return;
             }
 
-            const BOMB_DELAY: u64 = 3;
+            const BOMB_DELAY: u64 = 3000;
+            const BOMB_FUSE_DELAY: f32 = 3.0;
 
-            control.0.set_duration(Duration::from_secs(BOMB_DELAY));
+            control.0.set_duration(Duration::from_millis(BOMB_DELAY));
             control.0.reset();
 
-            commands.spawn(BombBundle::new(position.0, color.0));
+            let bomb = BombBundle::new(position.0, color.0);
+
+            let timer = BombFuse(Timer::from_seconds(BOMB_FUSE_DELAY, TimerMode::Once));
+
+            commands.spawn((bomb, timer));
+
             info!("Player: {} Spawned bomb at {}", player.0, position.0);
         }
     }
