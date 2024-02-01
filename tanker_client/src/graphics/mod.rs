@@ -1,6 +1,6 @@
 use bevy::{prelude::*, render::mesh::shape::UVSphere};
 use bevy_replicon::renet::transport::NetcodeClientTransport;
-use tanker_common::{BombPosition, PlayerColor, PlayerPosition};
+use tanker_common::*;
 
 pub struct GraphicsPlugin;
 
@@ -8,6 +8,7 @@ impl Plugin for GraphicsPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Startup, Self::init_ui_system)
             .add_systems(Startup, Self::init_scenery_system)
+            .add_systems(Update, Self::spawn_bomb_explosions_system)
             .add_systems(Update, Self::update_players_system)
             .add_systems(Update, Self::spawn_players_system)
             .add_systems(Update, Self::spawn_bombs_system);
@@ -76,6 +77,36 @@ impl GraphicsPlugin {
                 mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
                 material: materials.add(color.0.into()),
                 transform: Transform::from_translation(position.0),
+                ..default()
+            });
+        }
+    }
+
+    fn spawn_bomb_explosions_system(
+        mut commands: Commands,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+        query: Query<&BombExplosion, Added<BombExplosion>>,
+    ) {
+        for explosion in &query {
+            let mesh = meshes.add(
+                Mesh::try_from(shape::Icosphere {
+                    radius: explosion.radius.0,
+                    subdivisions: 7,
+                })
+                .unwrap(),
+            );
+
+            let material = materials.add(StandardMaterial {
+                base_color: Color::rgba(0.9, 0.2, 0.3, 1.0),
+                alpha_mode: AlphaMode::Add,
+                ..default()
+            });
+
+            commands.spawn(PbrBundle {
+                mesh,
+                material,
+                transform: Transform::from_translation(explosion.position.0),
                 ..default()
             });
         }

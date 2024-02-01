@@ -45,6 +45,36 @@ pub struct BombControl(pub Timer);
 #[derive(Component, Deserialize, Serialize)]
 pub struct BombPosition(pub Vec3);
 
+#[derive(Component)]
+pub struct BombFuse(pub Timer);
+
+#[derive(Component, Serialize, Deserialize)]
+pub struct BombRadius(pub f32);
+
+#[derive(Component, Serialize, Deserialize)]
+pub struct BombExplosion {
+    pub position: BombPosition,
+    pub radius: BombRadius,
+}
+
+#[derive(Bundle)]
+pub struct BombExplosionBundle {
+    pub explosion: BombExplosion,
+    replication: Replication,
+}
+
+impl BombExplosionBundle {
+    pub fn new(position: Vec3, radius: f32) -> Self {
+        Self {
+            explosion: BombExplosion {
+                position: BombPosition(position),
+                radius: BombRadius(radius),
+            },
+            replication: Replication,
+        }
+    }
+}
+
 #[derive(Bundle)]
 pub struct BombBundle {
     position: BombPosition,

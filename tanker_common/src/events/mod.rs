@@ -8,7 +8,7 @@ use bevy_replicon::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{BombPosition, PlayerColor, PlayerPosition};
+use crate::*;
 
 #[derive(Debug, Default, Deserialize, Event, Serialize)]
 pub struct MoveDirection(pub Vec3);
@@ -31,5 +31,6 @@ impl Register for App {
         self.replicate::<PlayerPosition>()
             .replicate::<PlayerColor>()
             .replicate::<BombPosition>()
+            .replicate::<BombExplosion>()
     }
 }
