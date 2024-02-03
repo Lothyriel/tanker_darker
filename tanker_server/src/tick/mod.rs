@@ -58,7 +58,7 @@ impl TickPlugin {
                     commands.spawn((player, BombControl(timer)));
                 }
                 ServerEvent::ClientDisconnected { client_id, reason } => {
-                    info!("Player {client_id} disconnected: {reason}");
+                    info!("Player: {client_id} disconnected: {reason}");
 
                     for (entity, player) in &query {
                         if *client_id == player.0 {
