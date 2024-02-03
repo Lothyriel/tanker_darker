@@ -55,6 +55,8 @@ impl ServerPlugin {
 
         let public_addr = SocketAddr::new(Ipv4Addr::UNSPECIFIED.into(), PORT);
 
+        info!("Starting server on {}", public_addr);
+
         let server_config = ServerConfig {
             current_time,
             max_clients: 30,
